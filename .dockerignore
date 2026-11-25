@@ -1,0 +1,12 @@
+.git
+.gitignore
+.vscode/
+__pycache__/
+*.pyc
+.venv*
+venv/
+notebooks/
+.ipynb_checkpoints/
+README.md
+Dockerfile
+.dockerignore
