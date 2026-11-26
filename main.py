@@ -3,14 +3,17 @@
 Run:  uvicorn main:app --reload
 Docs: http://127.0.0.1:8000/docs
 """
+import json
 from pathlib import Path
 
 import joblib
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-MODEL_PATH = Path(__file__).resolve().parent / "model.joblib"
+BASE_DIR = Path(__file__).resolve().parent
+MODEL_PATH = BASE_DIR / "model.joblib"
+MODEL_INFO_PATH = BASE_DIR / "model_info.json"
 
 if not MODEL_PATH.exists():
     raise RuntimeError("model.joblib not found. Run `python train.py` first.")
@@ -19,11 +22,15 @@ if not MODEL_PATH.exists():
 # instead of reading the file on every request.
 model = joblib.load(MODEL_PATH)
 
+# train.py also writes model_info.json: which MLflow registry version the
+# model.joblib file is, and its metrics. It is optional for the API to work.
+model_info = json.loads(MODEL_INFO_PATH.read_text()) if MODEL_INFO_PATH.exists() else None
+
 app = FastAPI(
     title="Heart Disease ML API",
-    description="Serves a logistic regression model trained on heart.csv. "
+    description="Serves the best model trained on heart.csv (tracked and registered with MLflow). "
     "For learning purposes only, not for medical use.",
-    version="1.0.0",
+    version="2.0.0",
 )
 
 
@@ -75,6 +82,14 @@ class PredictionResponse(BaseModel):
 @app.get("/")
 def root():
     return {"message": "ML API is running"}
+
+
+@app.get("/model-info")
+def get_model_info():
+    """Which registered MLflow model version is being served, with its metrics."""
+    if model_info is None:
+        raise HTTPException(status_code=404, detail="model_info.json not found. Run `python train.py`.")
+    return model_info
 
 
 @app.post("/predict", response_model=PredictionResponse)
