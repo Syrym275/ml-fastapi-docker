@@ -4,3 +4,8 @@ __pycache__/
 venv/
 .vscode/
 .ipynb_checkpoints/
+
+# MLflow local tracking data (created by train.py / mlflow ui)
+mlflow.db
+mlruns/
+mlartifacts/
