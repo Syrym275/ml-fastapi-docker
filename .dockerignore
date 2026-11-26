@@ -10,3 +10,12 @@ notebooks/
 README.md
 Dockerfile
 .dockerignore
+
+# Not needed inside the API image
+frontend/
+docker-compose.yml
+requirements-dev.txt
+screenshots/
+mlflow.db
+mlruns/
+mlartifacts/
